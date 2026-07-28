@@ -1,0 +1,19 @@
+services:
+  mongo-notificaciones:
+    image: mongo:6
+    container_name: mongo-notificaciones
+    ports:
+      - '27017:27017'
+    command: ["--replSet", "rs0"]
+    volumes:
+      - mongo_notificaciones_data:/data/db
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - '5672:5672'   # puerto de conexión AMQP (lo usa tu app)
+      - '15672:15672' # panel web para ver colas y mensajes
+
+volumes:
+  mongo_notificaciones_data:
