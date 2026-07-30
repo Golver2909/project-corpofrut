@@ -1,0 +1,56 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+// Tipos de notificación soportados (deben coincidir con contracts/notification.contract.ts)
+enum NotificationType {
+  TOURNAMENT_INVITATION // NOT-2: Invitación a torneo
+  TOURNAMENT_UPDATE // NOT-3: Cambios en torneo
+  REGISTRATION_CONFIRMATION // NOT-4: Confirmación de inscripción
+  TOURNAMENT_RESULT // NOT-5: Resultados del torneo
+  GENERIC
+}
+
+// Microservicio que origina la notificación (para trazabilidad)
+enum SourceService {
+  auth
+  torneos
+  inscripciones
+  equipos
+  fixture
+  notificaciones
+}
+
+model Notification {
+  id            String           @id @default(auto()) @map("_id") @db.ObjectId
+  userId        String
+  type          NotificationType
+  title         String
+  message       String
+  tournamentId  String?
+  data          Json?
+  sourceService SourceService
+  read          Boolean          @default(false)
+  readAt        DateTime?
+  createdAt     DateTime         @default(now())
+
+  @@index([userId])
+  @@index([userId, read])
+  @@map("notifications")
+}
+
+model NotificationPreference {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId          String   @unique
+  realtimeEnabled Boolean  @default(true)
+  channels        Json?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("notification_preferences")
+}
