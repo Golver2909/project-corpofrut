@@ -9,5 +9,23 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mongodb"
+}
+
+enum LogType {
+  Error
+  Warning
+  Info
+}
+
+model Log {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  type        LogType
+  timestamp   DateTime @default(now())
+  description String
+  userId      String?
+  clienteIp   String?
+  service     String
+  endpoint    String
+  metadata    Json?
 }

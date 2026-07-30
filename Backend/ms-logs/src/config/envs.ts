@@ -14,8 +14,8 @@ const envsSchema = joi
     .object({
         PORT: joi.number().required(),
         LOGS_MS_PORT: joi.number().required(),
-        LOGS_MS_HOST: joi.number().required(),
-        DATABASE_LOGS: joi.number().required()
+        LOGS_MS_HOST: joi.string().required(),
+        DATABASE_LOGS: joi.string().required()
     })
     .unknown(true);
 
