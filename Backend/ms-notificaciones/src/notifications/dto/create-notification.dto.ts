@@ -1,6 +1,6 @@
 import { IsEnum, IsString, IsOptional, IsObject, IsIn } from 'class-validator';
-import { NotificationType, SourceService } from '../../contracts/notification.contract';
-
+import { NotificationType } from '../../contracts/notification.contract';
+import type { SourceService } from '../../contracts/notification.contract';
 
 const SOURCE_SERVICES: SourceService[] = [
   'auth',
@@ -13,16 +13,16 @@ const SOURCE_SERVICES: SourceService[] = [
 
 export class CreateNotificationDto {
   @IsEnum(NotificationType)
-  type: NotificationType;
+  type!: NotificationType;
 
   @IsString()
-  userId: string;
+  userId!: string;
 
   @IsString()
-  title: string;
+  title!: string;
 
   @IsString()
-  message: string;
+  message!: string;
 
   @IsOptional()
   @IsString()
@@ -33,5 +33,5 @@ export class CreateNotificationDto {
   data?: Record<string, unknown>;
 
   @IsIn(SOURCE_SERVICES)
-  sourceService: SourceService;
+  sourceService!: SourceService;
 }
