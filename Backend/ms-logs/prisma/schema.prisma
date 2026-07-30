@@ -4,12 +4,12 @@
 // Get a free hosted Postgres database in seconds: `npx create-db`
 
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "mongodb"
+  url      = env("DATABASE_URL")
 }
 
 enum LogType {
@@ -26,6 +26,6 @@ model Log {
   userId      String?
   clienteIp   String?
   service     String
-  endpoint    String
+  endpoint    String?
   metadata    Json?
 }
