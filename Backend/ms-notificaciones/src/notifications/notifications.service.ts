@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateNotificationDto } from './dto/create-notification.dto';
 import { CreateBulkNotificationDto } from './dto/create-bulk-notification.dto';
@@ -15,7 +16,12 @@ export class NotificationsService {
 
   /** Llega por RabbitMQ: crear y despachar una notificación a un usuario */
   async create(dto: CreateNotificationDto) {
-    const notification = await this.prisma.notification.create({ data: dto });
+    const notification = await this.prisma.notification.create({
+      data: {
+        ...dto,
+        data: dto.data as Prisma.InputJsonValue | undefined,
+      },
+    });
     await this.dispatchRealtime(notification);
     return notification;
   }
@@ -26,7 +32,13 @@ export class NotificationsService {
 
     const created = await this.prisma.$transaction(
       userIds.map((userId) =>
-        this.prisma.notification.create({ data: { ...rest, userId } }),
+        this.prisma.notification.create({
+          data: {
+            ...rest,
+            userId,
+            data: rest.data as Prisma.InputJsonValue | undefined,
+          },
+        }),
       ),
     );
 
@@ -107,7 +119,7 @@ export class NotificationsService {
 
     return this.prisma.notificationPreference.update({
       where: { userId },
-      data: dto,
+      data: dto as Prisma.NotificationPreferenceUpdateInput,
     });
   }
 
