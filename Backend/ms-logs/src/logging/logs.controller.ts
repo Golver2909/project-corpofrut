@@ -8,8 +8,8 @@ export class LogsController {
     constructor(private readonly logsService: LogsService) { }
 
     @MessagePattern({ log: 'create' })
-    create(@Payload() CreateLogDto: CreateLogDto) {
-        return this.logsService.createLog(CreateLogDto)
+    create(@Payload() createLogDto: CreateLogDto) {
+        return this.logsService.createLog(createLogDto)
     }
 
 }
