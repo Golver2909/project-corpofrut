@@ -14,4 +14,11 @@ export class LogsService {
         });
     }
 
+    async readLogs() {
+        return await this.prisma.log.findMany({
+            orderBy: {
+                timestamp: 'desc',
+            }
+        })
+    }
 }
