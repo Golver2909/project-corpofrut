@@ -1,13 +1,13 @@
 import { Controller } from '@nestjs/common';
 import { LogsService } from './logs.service';
-import { MessagePattern, Payload } from '@nestjs/microservices';
+import { EventPattern, Payload } from '@nestjs/microservices';
 import { CreateLogDto } from './dto/create-log.dto';
 
-@Controller('logs')
+@Controller()
 export class LogsController {
     constructor(private readonly logsService: LogsService) { }
 
-    @MessagePattern({ log: 'create' })
+    @EventPattern('log.create')
     create(@Payload() createLogDto: CreateLogDto) {
         return this.logsService.createLog(createLogDto)
     }
