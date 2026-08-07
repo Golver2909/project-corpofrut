@@ -1,0 +1,1 @@
+//pendiente para cuando se haga el refactor de ms-logs y se pueda usar el contrato de logs desde ms-notificaciones
