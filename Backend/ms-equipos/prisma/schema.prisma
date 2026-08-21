@@ -6,3 +6,52 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+model Equipo {
+  id         String   @id @default(uuid())
+  name       String
+  isBlocked  Boolean  @default(false) // EQ-5: se bloquea al cerrar el período de modificaciones
+  isDisabled Boolean  @default(false) // EQ-9: lo deshabilita el organizador si incumple reglas
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  miembros Miembro[]
+  acciones EquipoAction[]
+
+  @@map("equipos")
+}
+
+model Miembro {
+  id           String           @id @default(uuid())
+  teamId       String
+  userId       String           // referencia externa, el usuario vive en Auth
+  isCaptain    Boolean          @default(false) // EQ-1/EQ-12: el creador queda como capitán
+  status       InvitationStatus @default(PENDING) // EQ-2/EQ-3
+  invitedAt    DateTime         @default(now())
+  respondedAt  DateTime?
+
+  equipo Equipo @relation(fields: [teamId], references: [id])
+
+  @@unique([teamId, userId]) // un usuario no puede tener dos registros en el mismo equipo
+  @@index([userId])
+  @@map("miembros")
+}
+
+model EquipoAction {
+  id        String   @id @default(uuid())
+  teamId    String
+  userId    String   // quién ejecutó la acción
+  action    String   // ej. "CREATE", "INVITE", "REMOVE_MEMBER", "DISABLE"
+  createdAt DateTime @default(now())
+
+  equipo Equipo @relation(fields: [teamId], references: [id])
+
+  @@index([teamId])
+  @@map("equipo_actions")
+}
