@@ -2,6 +2,7 @@ import { Controller } from '@nestjs/common';
 import { LogsService } from './logs.service';
 import { EventPattern, MessagePattern, Payload } from '@nestjs/microservices';
 import { CreateLogDto } from './dto/create-log.dto';
+import { ReadLogsDto } from './dto/read-logs.dto';
 
 @Controller()
 export class LogsController {
@@ -12,8 +13,8 @@ export class LogsController {
         return this.logsService.createLog(createLogDto)
     }
 
-    @MessagePattern({log: 'readLogs'})
-    readLogs() {
-        return this.logsService.readLogs();
+    @MessagePattern({ log: 'readLogs' })
+    readLogs(@Payload() readLogsDto: ReadLogsDto) {
+        return this.logsService.readLogs(readLogsDto);
     }
 }
