@@ -1,4 +1,5 @@
 import { Logger } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import {
   OnGatewayConnection,
   OnGatewayDisconnect,
@@ -11,11 +12,16 @@ import { NOTIFICATION_WS_EVENT } from '../contracts/notification.contract';
 /**
  * Canal en tiempo real hacia el frontend (Web/Angular y Móvil/React Native).
  *
- * El cliente se conecta indicando su userId, ej:
- *   io('http://localhost:3007/notifications', { query: { userId: '123' } })
+ * Este es el ÚNICO punto de ms-notificaciones al que el frontend le pega
+ * directo, sin pasar por ms-gateway. Por eso la validación de identidad
+ * tiene que hacerse acá mismo, con el JWT (no con Redis todavía, eso se
+ * suma después como una capa extra sin tocar esta lógica).
  *
- * y se suscribe a la room `user:123`. Cuando se crea una notificación
- * para ese usuario, este gateway emite el evento `notification:new`.
+ * El cliente se conecta mandando el JWT:
+ *   io('http://localhost:3007/notifications', { auth: { token: '<jwt>' } })
+ *
+ * El userId sale de decodificar y verificar ese token acá, nunca de un
+ * query param que declare el cliente.
  */
 @WebSocketGateway({
   cors: { origin: process.env.CORS_ORIGIN ?? '*' },
@@ -27,13 +33,16 @@ export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisco
   @WebSocketServer()
   server!: Server;
 
-  handleConnection(client: Socket) {
-    const userId = this.extractUserId(client);
+  constructor(private readonly jwtService: JwtService) {}
+
+  async handleConnection(client: Socket) {
+    const userId = await this.authenticate(client);
     if (!userId) {
-      this.logger.warn(`Conexión rechazada sin userId (socket ${client.id})`);
+      this.logger.warn(`Conexión rechazada: token inválido o ausente (socket ${client.id})`);
       client.disconnect(true);
       return;
     }
+    client.data.userId = userId;
     client.join(this.roomFor(userId));
     this.logger.log(`Usuario ${userId} conectado (socket ${client.id})`);
   }
@@ -51,8 +60,26 @@ export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisco
     return `user:${userId}`;
   }
 
-  private extractUserId(client: Socket): string | undefined {
-    const fromQuery = client.handshake.query?.userId;
-    return Array.isArray(fromQuery) ? fromQuery[0] : fromQuery;
+  /**
+   * Verifica el JWT del handshake y devuelve el userId (claim `sub`).
+   *
+   * TODO cuando ms-auth + Redis estén listos: agregar acá, después de
+   * verifyAsync, un chequeo de sesión activa:
+   *   const activa = await redisService.get(`session:${payload.sub}`);
+   *   if (!activa) return undefined;
+   * No hace falta tocar nada más de este archivo para sumarlo.
+   */
+  private async authenticate(client: Socket): Promise<string | undefined> {
+    const token =
+      (client.handshake.auth?.token as string | undefined) ??
+      (client.handshake.query?.token as string | undefined);
+    if (!token) return undefined;
+
+    try {
+      const payload = await this.jwtService.verifyAsync<{ sub: string }>(token);
+      return payload.sub;
+    } catch {
+      return undefined;
+    }
   }
 }

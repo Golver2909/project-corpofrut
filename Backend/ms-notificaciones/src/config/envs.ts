@@ -10,6 +10,7 @@ interface EnvVars {
   DATABASE_URL: string;
   RABBITMQ_URL: string;
   CORS_ORIGIN: string;
+  JWT_SECRET: string;
 }
 
 const envsSchema = joi
@@ -19,6 +20,7 @@ const envsSchema = joi
     DATABASE_URL: joi.string().required(),
     RABBITMQ_URL: joi.string().required(),
     CORS_ORIGIN: joi.string().default('*'),
+    JWT_SECRET: joi.string().required(),
   })
   .unknown(true);
 
@@ -36,4 +38,5 @@ export const envs = {
   databaseUrl: envVars.DATABASE_URL,
   rabbitmqUrl: envVars.RABBITMQ_URL,
   corsOrigin: envVars.CORS_ORIGIN,
+  jwtSecret: envVars.JWT_SECRET,
 };

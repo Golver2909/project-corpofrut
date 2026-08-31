@@ -103,15 +103,20 @@ export class NotificationsService {
     await this.prisma.notification.delete({ where: { id } });
   }
 
-  /** Llega por TCP: NOT-10, obtener preferencias (con default si no existen) */
-  async getPreferences(userId: string) {
-    const existing = await this.prisma.notificationPreference.findUnique({ where: { userId } });
-    if (existing) return existing;
-
-    return this.prisma.notificationPreference.create({
-      data: { userId, realtimeEnabled: true },
-    });
-  }
+ /** 
+ * Llega por TCP: NOT-10, obtener preferencias (con default si no existen)
+ * ✅ Usa UPSERT para evitar race condition cuando dos llamadas simultáneas
+ */
+async getPreferences(userId: string) {
+  return this.prisma.notificationPreference.upsert({
+    where: { userId },
+    update: {}, // Si existe, no actualiza nada
+    create: {
+      userId,
+      realtimeEnabled: true,
+    },
+  });
+}
 
   /** Llega por TCP: NOT-10, actualizar preferencias */
   async updatePreferences(userId: string, dto: UpdatePreferenceDto) {
