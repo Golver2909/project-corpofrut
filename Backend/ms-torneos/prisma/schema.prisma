@@ -1,0 +1,47 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum EstadoTorneo {
+  BORRADOR
+  PUBLICADO
+  EN_CURSO
+  FINALIZADO
+  CANCELADO
+}
+
+enum FormatoTorneo {
+  LIGA
+  ELIMINACION_DIRECTA
+  GRUPOS
+}
+
+model Torneo {
+  id          String        @id @default(uuid())
+  nombre      String
+  deporte     String
+  descripcion String?
+  fechaInicio DateTime
+  fechaFin    DateTime?
+
+  estado  EstadoTorneo  @default(BORRADOR)
+  formato FormatoTorneo
+
+  maxParticipantes Int
+  minParticipantes Int?
+
+  ganadorId          String?
+  motivoCancelacion  String?
+  organizadorId      String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([estado])
+  @@index([deporte])
+}

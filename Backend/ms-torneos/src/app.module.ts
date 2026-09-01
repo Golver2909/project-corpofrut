@@ -1,10 +1,15 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import { ConfigModule } from '@nestjs/config';
+import { AppCacheModule } from './common/cache/app-cache.module';
+import { PrismaModule } from './prisma/prisma.module';
+import { TorneosModule } from './torneos/torneos.module';
 
 @Module({
-  imports: [],
-  controllers: [AppController],
-  providers: [AppService],
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
+    AppCacheModule,
+    PrismaModule,
+    TorneosModule,
+  ],
 })
 export class AppModule {}
