@@ -12,6 +12,21 @@ services:
       - "3307:3306"
     volumes:
       - ms_auth_mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-prootpass"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7.4-alpine
+    container_name: ms-auth-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - ms_auth_redis_data:/data
 
 volumes:
   ms_auth_mysql_data:
+  ms_auth_redis_data:
